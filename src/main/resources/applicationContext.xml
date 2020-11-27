@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+        https://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd
+">
+
+<!--   使spring扫描包，dao和domain，service由spring整合，controller由springmvc整合-->
+    <context:component-scan base-package="ssm">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+<!--        controller类不过滤-->
+    </context:component-scan>
+
+<!--    spring整合mybatis  -->
+<!--   配置 datasource连接池-->
+    <bean id="dataSource"  class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="com.mysql.jdbc.Driver"/>
+        <property name="jdbcUrl" value="jdbc:mysql://localhost:3306/ssmUser?useUnicode=true&amp;characterEncoding=utf-8"/>
+        <property name="user" value="root"/>
+        <property name="password" value="maki"/>
+    </bean>
+<!--  配置工厂-->
+    <bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+<!-- dao包的配置-->
+    <bean id="mapperScanner" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="ssm.dao"></property>
+    </bean>
+
+<!--配置spring框架的声明式事务管理-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+    <tx:advice id="tx" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="find*" read-only="true"/>
+            <tx:method name="*" isolation="DEFAULT"></tx:method>
+        </tx:attributes>
+    </tx:advice>
+
+    <aop:config >
+        <aop:advisor advice-ref="tx" pointcut="execution(*  *.*.*(..))" />
+    </aop:config>
+</beans>
